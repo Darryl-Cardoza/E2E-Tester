@@ -1,0 +1,11 @@
+schemaVersion: 1
+id: MODE-BOTH
+title: YAML compatible frontend
+type: frontend
+modes: [frontend-mocked, frontend-live]
+tags: [verification]
+steps:
+  - action: ui.navigate
+    path: /
+  - action: assert.visible
+    target: { role: heading, name: Harness }

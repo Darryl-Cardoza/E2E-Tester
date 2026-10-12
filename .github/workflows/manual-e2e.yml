@@ -1,0 +1,166 @@
+name: Manual test run
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Target environment
+        type: choice
+        options: [local-demo, development, staging]
+        default: local-demo
+      project:
+        description: Playwright project to run
+        type: choice
+        options: [all, frontend-mocked, frontend-live, backend, journeys]
+        default: all
+      tag:
+        description: Optional grep tag, for example @smoke
+        type: string
+        default: ''
+
+permissions:
+  contents: read
+
+concurrency:
+  group: manual-${{ inputs.environment }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  local-demo:
+    name: Run against local demo
+    if: inputs.environment == 'local-demo'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      APP_BUILD_ID: ${{ github.sha }}
+      PROJECT: ${{ inputs.project }}
+      GREP: ${{ inputs.tag }}
+      TEST_ENV: local-demo
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Run tests
+        run: |
+          args=()
+          [ "$PROJECT" != "all" ] && args+=(--project="$PROJECT")
+          [ -n "$GREP" ] && args+=(--grep "$GREP")
+          npx playwright test "${args[@]}"
+
+      - name: Run metadata
+        if: always()
+        run: |
+          {
+            echo "### Manual run metadata"
+            echo "- Commit: \`$GITHUB_SHA\`"
+            echo "- Triggered by: \`$GITHUB_ACTOR\`"
+            echo "- Environment: local-demo"
+            echo "- Project: \`$PROJECT\`"
+            echo "- Tag: \`${GREP:-none}\`"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload reports
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: manual-local-demo-reports
+          path: |
+            playwright-report/
+            test-results/junit.xml
+            test-results/results.json
+          retention-days: 14
+
+      - name: Upload traces and screenshots on failure
+        if: failure()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: manual-local-demo-failure-artifacts
+          path: test-results/e2e/
+          retention-days: 7
+
+  external:
+    name: Run against ${{ inputs.environment }}
+    if: inputs.environment != 'local-demo'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    # GitHub environment named after the target; it holds the secrets and variables below.
+    environment: ${{ inputs.environment }}
+    env:
+      APP_BUILD_ID: ${{ github.sha }}
+      PROJECT: ${{ inputs.project }}
+      GREP: ${{ inputs.tag }}
+      TEST_ENV: ${{ inputs.environment }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Validate test definitions
+        run: npm run validate
+
+      - name: Run tests
+        # Credentials and target settings are scoped to this step, not the install steps.
+        env:
+          FRONTEND_BASE_URL: ${{ vars.FRONTEND_BASE_URL }}
+          API_BASE_URL: ${{ vars.API_BASE_URL }}
+          ALLOWED_TARGET_HOSTS: ${{ vars.ALLOWED_TARGET_HOSTS }}
+          TEST_EMAIL: ${{ secrets.TEST_EMAIL }}
+          TEST_PASSWORD: ${{ secrets.TEST_PASSWORD }}
+          TEST_USER_TOKEN: ${{ secrets.TEST_USER_TOKEN }}
+          TEST_ADMIN_TOKEN: ${{ secrets.TEST_ADMIN_TOKEN }}
+          TEST_EXPIRED_TOKEN: ${{ secrets.TEST_EXPIRED_TOKEN }}
+        run: |
+          args=()
+          [ "$PROJECT" != "all" ] && args+=(--project="$PROJECT")
+          [ -n "$GREP" ] && args+=(--grep "$GREP")
+          npx playwright test "${args[@]}"
+
+      - name: Run metadata
+        if: always()
+        run: |
+          {
+            echo "### Manual run metadata"
+            echo "- Commit: \`$GITHUB_SHA\`"
+            echo "- Triggered by: \`$GITHUB_ACTOR\`"
+            echo "- Environment: \`$TEST_ENV\`"
+            echo "- Project: \`$PROJECT\`"
+            echo "- Tag: \`${GREP:-none}\`"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload reports
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: manual-${{ inputs.environment }}-reports
+          path: |
+            playwright-report/
+            test-results/junit.xml
+            test-results/results.json
+          retention-days: 14
+
+      - name: Upload traces and screenshots on failure
+        if: failure()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: manual-${{ inputs.environment }}-failure-artifacts
+          path: test-results/e2e/
+          retention-days: 7

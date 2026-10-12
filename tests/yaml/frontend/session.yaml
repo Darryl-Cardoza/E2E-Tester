@@ -1,0 +1,13 @@
+schemaVersion: 1
+id: UI-SESSION
+title: Reuse authenticated browser session
+type: frontend
+modes: [frontend-live]
+browserAuth: test-session
+tags: [authentication]
+steps:
+  - action: ui.navigate
+    path: /dashboard
+  - action: assert.text
+    target: { testId: profile-email }
+    equals: '${TEST_EMAIL}'

@@ -1,0 +1,17 @@
+node_modules/
+test-results/
+playwright-report/
+blob-report/
+.env
+.env.*
+!.env.example
+.auth/
+playwright/.auth/
+*.log
+coverage/
+dist/
+.npm-cache/
+
+# Local planning and verification folders (not versioned)
+claude-plans/
+integration-plans/

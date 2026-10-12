@@ -1,0 +1,21 @@
+schemaVersion: 1
+id: API-USERS-001
+title: Retrieve authenticated user
+type: backend
+tags: [authentication, smoke]
+steps:
+  - action: api.request
+    method: GET
+    path: /api/users/me
+    auth: test-user
+    saveAs: profile
+  - action: assert.status
+    from: profile
+    equals: 200
+  - action: assert.json
+    from: profile
+    path: $.email
+    equals: '${TEST_EMAIL}'
+  - action: assert.contract
+    from: profile
+    schema: user-profile-v1

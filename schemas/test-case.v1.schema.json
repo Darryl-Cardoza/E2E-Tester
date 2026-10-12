@@ -1,0 +1,855 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://example.test/schemas/test-case.v1.schema.json",
+  "type": "object",
+  "properties": {
+    "schemaVersion": {
+      "const": 1
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,127}$"
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1
+    },
+    "description": {
+      "type": "string",
+      "minLength": 1
+    },
+    "type": {
+      "enum": ["frontend", "backend", "journeys"]
+    },
+    "tags": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]*$"
+      }
+    },
+    "prerequisites": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "modes": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "enum": ["frontend-mocked", "frontend-live"]
+      }
+    },
+    "timeout": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "testData": {
+      "type": "object",
+      "propertyNames": {
+        "type": "string",
+        "pattern": "^[A-Za-z][A-Za-z0-9_-]*$"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/json"
+      }
+    },
+    "setup": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/step"
+      },
+      "maxItems": 500
+    },
+    "steps": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/step"
+      },
+      "maxItems": 500,
+      "minItems": 1
+    },
+    "teardown": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/step"
+      },
+      "maxItems": 500
+    },
+    "browserAuth": {
+      "type": "string",
+      "pattern": "^[A-Za-z][A-Za-z0-9_-]*$"
+    }
+  },
+  "required": ["schemaVersion", "id", "title", "type", "tags", "steps"],
+  "additionalProperties": false,
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "frontend"
+          }
+        },
+        "required": ["type"]
+      },
+      "then": {
+        "required": ["modes"],
+        "properties": {
+          "modes": {}
+        }
+      },
+      "else": {
+        "not": {
+          "required": ["modes"],
+          "properties": {
+            "modes": {}
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "json": {
+      "anyOf": [
+        {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/json"
+          }
+        },
+        {
+          "type": "object",
+          "propertyNames": {
+            "not": {
+              "enum": ["__proto__", "constructor", "prototype"]
+            }
+          },
+          "additionalProperties": {
+            "$ref": "#/$defs/json"
+          }
+        }
+      ]
+    },
+    "target": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "testId": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": ["testId"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "role": {
+              "enum": [
+                "button",
+                "link",
+                "textbox",
+                "checkbox",
+                "radio",
+                "combobox",
+                "option",
+                "heading",
+                "alert",
+                "status",
+                "dialog",
+                "navigation",
+                "main",
+                "list",
+                "listitem",
+                "table",
+                "row",
+                "cell",
+                "img",
+                "tab",
+                "tabpanel",
+                "switch",
+                "menuitem",
+                "progressbar",
+                "searchbox",
+                "slider",
+                "spinbutton"
+              ]
+            },
+            "name": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": ["role", "name"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "label": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": ["label"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "text": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": ["text"],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "step": {
+      "type": "object",
+      "discriminator": {
+        "propertyName": "action"
+      },
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "action": {
+              "const": "ui.navigate"
+            },
+            "name": {
+              "type": "string",
+              "minLength": 1
+            },
+            "path": {
+              "type": "string",
+              "pattern": "^/(?!/)[^\\\\\\s]*$"
+            }
+          },
+          "required": ["action", "path"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "action": {
+              "const": "ui.click"
+            },
+            "name": {
+              "type": "string",
+              "minLength": 1
+            },
+            "target": {
+              "$ref": "#/$defs/target"
+            }
+          },
+          "required": ["action", "target"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "action": {
+              "const": "ui.check"
+            },
+            "name": {
+              "type": "string",
+              "minLength": 1
+            },
+            "target": {
+              "$ref": "#/$defs/target"
+            }
+          },
+          "required": ["action", "target"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "action": {
+              "const": "ui.uncheck"
+            },
+            "name": {
+              "type": "string",
+              "minLength": 1
+            },
+            "target": {
+              "$ref": "#/$defs/target"
+            }
+          },
+          "required": ["action", "target"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "action": {
+              "const": "assert.visible"
+            },
+            "name": {
+              "type": "string",
+              "minLength": 1
+            },
+            "target": {
+              "$ref": "#/$defs/target"
+            }
+          },
+          "required": ["action", "target"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "action": {
+              "const": "assert.hidden"
+            },
+            "name": {
+              "type": "string",
+              "minLength": 1
+            },
+            "target": {
+              "$ref": "#/$defs/target"
+            }
+          },
+          "required": ["action", "target"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "action": {
+              "const": "assert.enabled"
+            },
+            "name": {
+              "type": "string",
+              "minLength": 1
+            },
+            "target": {
+              "$ref": "#/$defs/target"
+            }
+          },
+          "required": ["action", "target"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "action": {
+              "const": "assert.disabled"
+            },
+            "name": {
+              "type": "string",
+              "minLength": 1
+            },
+            "target": {
+              "$ref": "#/$defs/target"
+            }
+          },
+          "required": ["action", "target"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "action": {
+              "const": "ui.fill"
+            },
+            "name": {
+              "type": "string",
+              "minLength": 1
+            },
+            "target": {
+              "$ref": "#/$defs/target"
+            },
+            "value": {
+              "type": "string"
+            }
+          },
+          "required": ["action", "target", "value"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "action": {
+              "const": "ui.select"
+            },
+            "name": {
+              "type": "string",
+              "minLength": 1
+            },
+            "target": {
+              "$ref": "#/$defs/target"
+            },
+            "value": {
+              "oneOf": [
+                {
+                  "type": "string",
+                  "minLength": 1
+                },
+                {
+                  "type": "array",
+                  "minItems": 1,
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              ]
+            }
+          },
+          "required": ["action", "target", "value"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "action": {
+              "const": "ui.press"
+            },
+            "name": {
+              "type": "string",
+              "minLength": 1
+            },
+            "target": {
+              "$ref": "#/$defs/target"
+            },
+            "key": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": ["action", "target", "key"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "action": {
+              "const": "assert.text"
+            },
+            "name": {
+              "type": "string",
+              "minLength": 1
+            },
+            "target": {
+              "$ref": "#/$defs/target"
+            },
+            "equals": {
+              "type": "string"
+            },
+            "contains": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": ["action", "target"],
+          "additionalProperties": false,
+          "oneOf": [
+            {
+              "required": ["equals"],
+              "not": {
+                "required": ["contains"],
+                "properties": {
+                  "contains": {}
+                }
+              },
+              "properties": {
+                "equals": {}
+              }
+            },
+            {
+              "required": ["contains"],
+              "not": {
+                "required": ["equals"],
+                "properties": {
+                  "equals": {}
+                }
+              },
+              "properties": {
+                "contains": {}
+              }
+            }
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "action": {
+              "const": "assert.url"
+            },
+            "name": {
+              "type": "string",
+              "minLength": 1
+            },
+            "equals": {
+              "type": "string"
+            },
+            "contains": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": ["action"],
+          "additionalProperties": false,
+          "oneOf": [
+            {
+              "required": ["equals"],
+              "not": {
+                "required": ["contains"],
+                "properties": {
+                  "contains": {}
+                }
+              },
+              "properties": {
+                "equals": {}
+              }
+            },
+            {
+              "required": ["contains"],
+              "not": {
+                "required": ["equals"],
+                "properties": {
+                  "equals": {}
+                }
+              },
+              "properties": {
+                "contains": {}
+              }
+            }
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "action": {
+              "const": "assert.count"
+            },
+            "name": {
+              "type": "string",
+              "minLength": 1
+            },
+            "target": {
+              "$ref": "#/$defs/target"
+            },
+            "equals": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          "required": ["action", "target", "equals"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "action": {
+              "const": "api.request"
+            },
+            "name": {
+              "type": "string",
+              "minLength": 1
+            },
+            "method": {
+              "enum": ["GET", "POST", "PUT", "PATCH", "DELETE"]
+            },
+            "path": {
+              "type": "string",
+              "pattern": "^/(?!/)[^\\\\\\s]*$"
+            },
+            "headers": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              },
+              "propertyNames": {
+                "pattern": "^[A-Za-z0-9-]+$"
+              }
+            },
+            "query": {
+              "type": "object",
+              "additionalProperties": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "boolean"
+                  }
+                ]
+              }
+            },
+            "body": {
+              "$ref": "#/$defs/json"
+            },
+            "auth": {
+              "type": "string",
+              "pattern": "^[A-Za-z][A-Za-z0-9_-]*$"
+            },
+            "saveAs": {
+              "type": "string",
+              "pattern": "^[A-Za-z][A-Za-z0-9_-]*$"
+            },
+            "timeout": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          "required": ["action", "method", "path"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "action": {
+              "const": "assert.status"
+            },
+            "name": {
+              "type": "string",
+              "minLength": 1
+            },
+            "from": {
+              "type": "string",
+              "pattern": "^[A-Za-z][A-Za-z0-9_-]*$"
+            },
+            "equals": {
+              "type": "integer",
+              "minimum": 100,
+              "maximum": 599
+            }
+          },
+          "required": ["action", "from", "equals"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "action": {
+              "const": "assert.json"
+            },
+            "name": {
+              "type": "string",
+              "minLength": 1
+            },
+            "from": {
+              "type": "string",
+              "pattern": "^[A-Za-z][A-Za-z0-9_-]*$"
+            },
+            "path": {
+              "type": "string",
+              "pattern": "^\\$(?:(?:\\.[A-Za-z_][A-Za-z0-9_-]*)|(?:\\[(?:0|[1-9][0-9]*)\\]))*$"
+            },
+            "equals": {
+              "$ref": "#/$defs/json"
+            }
+          },
+          "required": ["action", "from", "path", "equals"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "action": {
+              "const": "assert.contract"
+            },
+            "name": {
+              "type": "string",
+              "minLength": 1
+            },
+            "from": {
+              "type": "string",
+              "pattern": "^[A-Za-z][A-Za-z0-9_-]*$"
+            },
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-z0-9][a-z0-9-]{0,62}$"
+            }
+          },
+          "required": ["action", "from", "schema"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "action": {
+              "const": "assert.header"
+            },
+            "name": {
+              "type": "string",
+              "minLength": 1
+            },
+            "from": {
+              "type": "string",
+              "pattern": "^[A-Za-z][A-Za-z0-9_-]*$"
+            },
+            "header": {
+              "type": "string",
+              "minLength": 1
+            },
+            "equals": {
+              "type": "string"
+            }
+          },
+          "required": ["action", "from", "header", "equals"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "action": {
+              "const": "assert.responseTime"
+            },
+            "name": {
+              "type": "string",
+              "minLength": 1
+            },
+            "from": {
+              "type": "string",
+              "pattern": "^[A-Za-z][A-Za-z0-9_-]*$"
+            },
+            "lessThan": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          "required": ["action", "from", "lessThan"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "action": {
+              "const": "mock.api"
+            },
+            "name": {
+              "type": "string",
+              "minLength": 1
+            },
+            "url": {
+              "type": "string",
+              "pattern": "^/(?!/)[^\\\\\\s]*$"
+            },
+            "method": {
+              "enum": ["GET", "POST", "PUT", "PATCH", "DELETE"]
+            },
+            "status": {
+              "type": "integer",
+              "minimum": 100,
+              "maximum": 599
+            },
+            "body": {
+              "$ref": "#/$defs/json"
+            },
+            "headers": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              },
+              "propertyNames": {
+                "pattern": "^[A-Za-z0-9-]+$"
+              }
+            },
+            "delay": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 30000
+            }
+          },
+          "required": ["action", "url", "method", "status"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "action": {
+              "const": "data.generate"
+            },
+            "name": {
+              "type": "string",
+              "minLength": 1
+            },
+            "kind": {
+              "enum": ["uuid", "email", "string"]
+            },
+            "saveAs": {
+              "type": "string",
+              "pattern": "^[A-Za-z][A-Za-z0-9_-]*$"
+            },
+            "prefix": {
+              "type": "string",
+              "maxLength": 64,
+              "pattern": "^[A-Za-z0-9_-]*$"
+            }
+          },
+          "required": ["action", "kind", "saveAs"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["action", "resource", "body", "saveAs"],
+          "properties": {
+            "action": {
+              "const": "data.create"
+            },
+            "name": {
+              "type": "string",
+              "minLength": 1
+            },
+            "resource": {
+              "type": "string",
+              "pattern": "^[A-Za-z][A-Za-z0-9_-]*$"
+            },
+            "body": {
+              "type": "object",
+              "propertyNames": {
+                "not": {
+                  "enum": ["__proto__", "constructor", "prototype"]
+                }
+              },
+              "additionalProperties": {
+                "$ref": "#/$defs/json"
+              }
+            },
+            "saveAs": {
+              "type": "string",
+              "pattern": "^[A-Za-z][A-Za-z0-9_-]*$"
+            },
+            "auth": {
+              "type": "string",
+              "pattern": "^[A-Za-z][A-Za-z0-9_-]*$"
+            }
+          }
+        }
+      ]
+    }
+  }
+}

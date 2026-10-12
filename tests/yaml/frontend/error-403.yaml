@@ -1,0 +1,25 @@
+schemaVersion: 1
+id: UI-ERROR-403
+title: Display 403 backend error
+type: frontend
+modes: [frontend-mocked]
+tags: [negative]
+steps:
+  - action: mock.api
+    method: POST
+    url: /api/login
+    status: 403
+    body: { error: controlled }
+  - action: ui.navigate
+    path: /login
+  - action: ui.fill
+    target: { testId: email-input }
+    value: '${TEST_EMAIL}'
+  - action: ui.fill
+    target: { testId: password-input }
+    value: '${TEST_PASSWORD}'
+  - action: ui.click
+    target: { testId: login-button }
+  - action: assert.text
+    target: { testId: error }
+    equals: Permission denied

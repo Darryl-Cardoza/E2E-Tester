@@ -1,0 +1,19 @@
+schemaVersion: 1
+id: MODE-MOCK
+title: YAML mocked frontend
+type: frontend
+modes: [frontend-mocked]
+tags: [verification]
+steps:
+  - action: mock.api
+    url: /api/value
+    method: GET
+    status: 200
+    body: { value: mocked }
+  - action: ui.navigate
+    path: /
+  - action: ui.click
+    target: { role: button, name: Load }
+  - action: assert.text
+    target: { text: mocked }
+    equals: mocked

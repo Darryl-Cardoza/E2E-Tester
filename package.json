@@ -1,0 +1,42 @@
+{
+  "name": "standalone-hybrid-e2e",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24 <25",
+    "npm": ">=11 <12"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint . --max-warnings=0",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test:unit": "playwright test --config=playwright.unit.config.ts",
+    "test:list": "playwright test --list",
+    "test:frontend:mock": "playwright test --project=frontend-mocked",
+    "test:frontend:live": "playwright test --project=frontend-live",
+    "test:backend": "playwright test --project=backend",
+    "test:journeys": "playwright test --project=journeys",
+    "test": "playwright test",
+    "report": "playwright show-report",
+    "audit": "npm audit",
+    "licenses": "npm query *",
+    "validate": "tsx scripts/validate-tests.ts",
+    "test:engine": "playwright test --config=playwright.engine.config.ts",
+    "test:modes": "playwright test --config=playwright.modes.config.ts",
+    "list:scenarios": "tsx scripts/list-tests.ts"
+  },
+  "devDependencies": {
+    "@eslint/js": "10.0.1",
+    "@playwright/test": "1.64.0",
+    "@types/node": "24.19.2",
+    "ajv": "8.20.0",
+    "eslint": "10.12.0",
+    "prettier": "3.9.10",
+    "tsx": "4.23.15",
+    "typescript": "6.0.3",
+    "typescript-eslint": "8.71.1",
+    "yaml": "2.9.1"
+  }
+}

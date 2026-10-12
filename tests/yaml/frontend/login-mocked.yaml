@@ -1,0 +1,30 @@
+schemaVersion: 1
+id: UI-LOGIN-MOCK
+title: Login with deterministic mocks
+type: frontend
+modes: [frontend-mocked]
+tags: [smoke]
+steps:
+  - action: mock.api
+    method: POST
+    url: /api/login
+    status: 200
+    body: { authenticated: true }
+  - action: mock.api
+    method: GET
+    url: /api/users/me
+    status: 200
+    body: { email: '${TEST_EMAIL}' }
+  - action: ui.navigate
+    path: /login
+  - action: ui.fill
+    target: { testId: email-input }
+    value: '${TEST_EMAIL}'
+  - action: ui.fill
+    target: { testId: password-input }
+    value: '${TEST_PASSWORD}'
+  - action: ui.click
+    target: { testId: login-button }
+  - action: assert.text
+    target: { testId: profile-email }
+    equals: '${TEST_EMAIL}'

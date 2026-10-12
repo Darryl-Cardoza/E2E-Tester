@@ -1,0 +1,14 @@
+schemaVersion: 1
+id: MODE-LIVE
+title: YAML live frontend
+type: frontend
+modes: [frontend-live]
+tags: [verification]
+steps:
+  - action: ui.navigate
+    path: /
+  - action: ui.click
+    target: { role: button, name: Load }
+  - action: assert.text
+    target: { text: live }
+    equals: live

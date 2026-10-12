@@ -1,0 +1,19 @@
+schemaVersion: 1
+id: MODE-JOURNEY
+title: YAML integrated journey
+type: journeys
+tags: [verification]
+steps:
+  - action: ui.navigate
+    path: /
+  - action: ui.click
+    target: { role: button, name: Load }
+  - action: assert.visible
+    target: { text: live }
+  - action: api.request
+    method: GET
+    path: /api/value
+    saveAs: value
+  - action: assert.status
+    from: value
+    equals: 200

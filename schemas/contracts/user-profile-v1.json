@@ -1,0 +1,11 @@
+{
+  "title": "Public user profile, version 1",
+  "type": "object",
+  "required": ["id", "email"],
+  "properties": {
+    "id": { "type": "string", "minLength": 1 },
+    "email": { "type": "string", "minLength": 3 },
+    "testOwner": { "type": "string" }
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,22 @@
+schemaVersion: 1
+id: UI-LOGIN-LIVE
+title: Login against the live backend
+type: frontend
+modes: [frontend-live]
+tags: [smoke]
+steps:
+  - action: ui.navigate
+    path: /login
+  - action: ui.fill
+    target: { testId: email-input }
+    value: '${TEST_EMAIL}'
+  - action: ui.fill
+    target: { testId: password-input }
+    value: '${TEST_PASSWORD}'
+  - action: ui.click
+    target: { testId: login-button }
+  - action: assert.url
+    contains: /dashboard
+  - action: assert.text
+    target: { testId: profile-email }
+    equals: '${TEST_EMAIL}'

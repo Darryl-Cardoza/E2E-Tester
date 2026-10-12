@@ -1,0 +1,14 @@
+schemaVersion: 1
+id: UI-VALIDATION
+title: Empty login fields show validation
+type: frontend
+modes: [frontend-mocked, frontend-live]
+tags: [validation]
+steps:
+  - action: ui.navigate
+    path: /login
+  - action: ui.click
+    target: { testId: login-button }
+  - action: assert.text
+    target: { testId: error }
+    contains: valid email

@@ -1,0 +1,14 @@
+schemaVersion: 1
+id: API-EXPIRED
+title: Expired bearer token is rejected
+type: backend
+tags: [authentication, negative]
+steps:
+  - action: api.request
+    method: GET
+    path: /api/users/me
+    auth: expired-user
+    saveAs: rejected
+  - action: assert.status
+    from: rejected
+    equals: 401

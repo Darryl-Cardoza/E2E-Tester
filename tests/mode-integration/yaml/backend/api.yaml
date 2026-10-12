@@ -1,0 +1,14 @@
+schemaVersion: 1
+id: MODE-API
+title: YAML backend
+type: backend
+tags: [verification]
+steps:
+  - action: api.request
+    method: GET
+    path: /api/value
+    saveAs: value
+  - action: assert.json
+    from: value
+    path: $.value
+    equals: live

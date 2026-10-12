@@ -1,0 +1,44 @@
+schemaVersion: 1
+id: JOURNEY-USER
+title: Create synthetic user and verify browser and API session
+type: journeys
+tags: [smoke]
+setup:
+  - action: data.generate
+    kind: email
+    saveAs: email
+  - action: data.create
+    resource: test-users
+    auth: test-admin
+    body: { email: '${generated.email}', password: '${TEST_PASSWORD}' }
+    saveAs: user
+steps:
+  - action: ui.navigate
+    path: /login
+  - action: ui.fill
+    target: { testId: email-input }
+    value: '${generated.email}'
+  - action: ui.fill
+    target: { testId: password-input }
+    value: '${TEST_PASSWORD}'
+  - action: ui.click
+    target: { testId: login-button }
+  - action: assert.text
+    target: { testId: profile-email }
+    equals: '${generated.email}'
+  - action: api.request
+    method: POST
+    path: /api/login
+    body: { email: '${generated.email}', password: '${TEST_PASSWORD}' }
+    saveAs: login
+  - action: assert.status
+    from: login
+    equals: 200
+  - action: api.request
+    method: GET
+    path: /api/users/me
+    saveAs: profile
+  - action: assert.json
+    from: profile
+    path: $.id
+    equals: '${generated.user.id}'

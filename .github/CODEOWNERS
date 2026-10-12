@@ -1,0 +1,19 @@
+# Replace the placeholder team handles with real GitHub teams before enabling review rules.
+
+# Default: developer review
+*                         @your-org/framework-developers
+
+# QA review for test definitions and their documentation
+/tests/yaml/              @your-org/qa-engineers
+/schemas/contracts/       @your-org/qa-engineers
+/docs/yaml-authoring.md   @your-org/qa-engineers
+
+# Developer review for runtime and framework code
+/framework/               @your-org/framework-developers
+/config/                  @your-org/framework-developers
+/tests/framework-unit/    @your-org/framework-developers
+
+# DevOps review for CI/CD and secret-handling changes
+/.github/                 @your-org/devops
+/.env.example             @your-org/devops
+/docs/ci-cd.md            @your-org/devops
